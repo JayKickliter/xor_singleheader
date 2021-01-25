@@ -111,7 +111,7 @@ static inline bool xor16_contain(uint64_t key, const xor16_t *filter) {
 static inline bool xor8_allocate(uint32_t size, xor8_t *filter) {
   size_t capacity = 32 + 1.23 * size;
   capacity = capacity / 3 * 3;
-  filter->fingerprints = (uint8_t *)malloc(capacity * sizeof(uint8_t));
+  filter->fingerprints = (uint8_t *)calloc(capacity, sizeof(uint8_t));
   if (filter->fingerprints != NULL) {
     filter->blockLength = capacity / 3;
     return true;
@@ -126,7 +126,7 @@ static inline bool xor16_allocate(uint32_t size, xor16_t *filter) {
   size_t capacity = 32 + 1.23 * size;
   filter->blockLength = capacity / 3;
   capacity = capacity / 3 * 3;
-  filter->fingerprints = (uint16_t *)malloc(capacity * sizeof(uint16_t));
+  filter->fingerprints = (uint16_t *)calloc(capacity, sizeof(uint16_t));
   if (filter->fingerprints != NULL) {
     filter->blockLength = capacity / 3;
     return true;

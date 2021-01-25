@@ -43,18 +43,21 @@ bool testbufferedxor8() {
 bool testxor8() {
   printf("testing xor8\n");
 
-  xor8_t filter;
+  xor8_t filter0;
+  xor8_t filter1;
   size_t size = 10000;
-  xor8_allocate(size, &filter);
+  xor8_allocate(size, &filter0);
+  xor8_allocate(size, &filter1);
   // we need some set of values
   uint64_t *big_set = (uint64_t *)malloc(sizeof(uint64_t) * size);
   for (size_t i = 0; i < size; i++) {
     big_set[i] = i; // we use contiguous values
   }
-  // we construct the filter
-  xor8_populate(big_set, size, &filter);
+  // we construct the filter0
+  xor8_populate(big_set, size, &filter0);
+  xor8_populate(big_set, size, &filter1);
   for (size_t i = 0; i < size; i++) {
-    if (!xor8_contain(big_set[i], &filter)) {
+    if (!(xor8_contain(big_set[i], &filter0) && xor8_contain(big_set[i], &filter1))) {
       printf("bug!\n");
       return false;
     }
@@ -64,33 +67,37 @@ bool testxor8() {
   size_t trials = 10000000; //(uint64_t)rand() << 32 + rand()
   for (size_t i = 0; i < trials; i++) {
     uint64_t random_key = ((uint64_t)rand() << 32) + rand();
-    if (xor8_contain(random_key, &filter)) {
+    if (xor8_contain(random_key, &filter0)) {
       if (random_key >= size) {
         random_matches++;
       }
     }
   }
   printf("fpp %3.10f (estimated) \n", random_matches * 1.0 / trials);
-  printf("bits per entry %3.1f\n", xor8_size_in_bytes(&filter) * 8.0 / size);
-  xor8_free(&filter);
+  printf("bits per entry %3.1f\n", xor8_size_in_bytes(&filter0) * 8.0 / size);
+  xor8_free(&filter0);
+  xor8_free(&filter1);
   free(big_set);
   return true;
 }
 
 bool testxor16() {
   printf("testing xor16\n");
-  xor16_t filter;
+  xor16_t filter0;
+  xor16_t filter1;
   size_t size = 10000;
-  xor16_allocate(size, &filter);
+  xor16_allocate(size, &filter0);
+  xor16_allocate(size, &filter1);
   // we need some set of values
   uint64_t *big_set = (uint64_t *)malloc(sizeof(uint64_t) * size);
   for (size_t i = 0; i < size; i++) {
     big_set[i] = i; // we use contiguous values
   }
   // we construct the filter
-  xor16_populate(big_set, size, &filter);
+  xor16_populate(big_set, size, &filter0);
+  xor16_populate(big_set, size, &filter1);
   for (size_t i = 0; i < size; i++) {
-    if (!xor16_contain(big_set[i], &filter)) {
+      if (!(xor16_contain(big_set[i], &filter0) && xor16_contain(big_set[i], &filter1))) {
       printf("bug!\n");
       return false;
     }
@@ -100,15 +107,20 @@ bool testxor16() {
   size_t trials = 10000000; //(uint64_t)rand() << 32 + rand()
   for (size_t i = 0; i < trials; i++) {
     uint64_t random_key = ((uint64_t)rand() << 32) + rand();
-    if (xor16_contain(random_key, &filter)) {
+    if (xor16_contain(random_key, &filter0)) {
       if (random_key >= size) {
         random_matches++;
       }
     }
   }
+  assert(filter0.blockLength == filter1.blockLength);
+  assert(filter0.seed == filter1.seed);
+  int fp_sz = filter0.blockLength * 3 * sizeof(uint16_t);
+  assert(!memcmp(filter0.fingerprints, filter1.fingerprints, fp_sz));
   printf("fpp %3.10f (estimated) \n", random_matches * 1.0 / trials);
-  printf("bits per entry %3.1f\n", xor16_size_in_bytes(&filter) * 8.0 / size);
-  xor16_free(&filter);
+  printf("bits per entry %3.1f\n", xor16_size_in_bytes(&filter0) * 8.0 / size);
+  xor16_free(&filter0);
+  xor16_free(&filter1);
   free(big_set);
   return true;
 }
